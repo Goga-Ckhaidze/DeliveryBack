@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const { User, validate } = require('../models/user');
 const bcrypt = require('bcrypt');
+const axios = require('axios');
 
 router.post('/', async (req, res) => {
   try {
@@ -8,10 +9,18 @@ router.post('/', async (req, res) => {
     if (error)
       return res.status(400).send({ message: error.details[0].message });
 
-    // Validate role explicitly (optional, since Joi does it, but extra safety)
-    const { role } = req.body;
-    if (!['customer', 'delivery'].includes(role)) {
-      return res.status(400).send({ message: 'Invalid role selected' });
+    // reCAPTCHA validation
+    const { captchaToken } = req.body;
+    if (!captchaToken) {
+      return res.status(400).send({ message: 'Captcha token is required' });
+    }
+
+    const secretKey = "6LeWRIYrAAAAAC3ogykip64qUAi-lJ_oDNbKxbSn";
+    const verifyUrl = `https://www.google.com/recaptcha/api/siteverify?secret=${secretKey}&response=${captchaToken}`;
+
+    const { data: captchaRes } = await axios.post(verifyUrl);
+    if (!captchaRes.success) {
+      return res.status(400).send({ message: 'Captcha verification failed' });
     }
 
     const existingUser = await User.findOne({ email: req.body.email });
@@ -21,7 +30,7 @@ router.post('/', async (req, res) => {
     const salt = await bcrypt.genSalt(Number(process.env.SALT));
     const hashedPassword = await bcrypt.hash(req.body.password, salt);
 
-    const newUser = new User({ 
+    const newUser = new User({
       firstName: req.body.firstName,
       lastName: req.body.lastName,
       email: req.body.email,
