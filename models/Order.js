@@ -7,7 +7,14 @@ const orderSchema = new mongoose.Schema({
     lat: Number,
     lng: Number
   },
-  items: Array,
+items: [
+  {
+    productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
+    quantity: { type: Number, required: true, min: 1 },
+    price: { type: Number, required: true }  // price per unit at order time
+  }
+],
+
   status: {
     type: String,
     enum: ['pending', 'taken', 'delivered'],
@@ -28,6 +35,12 @@ const orderSchema = new mongoose.Schema({
     default: null
   },
 
+totalPrice: {
+  type: Number,
+  required: true,
+},
+
+  
   user_id: {
     type: String,
   },
