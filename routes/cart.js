@@ -1,29 +1,12 @@
-// backend/routes/cart.js
 const express = require('express');
 const router = express.Router();
 const Cart = require('../models/Cart');
-const jwt = require('jsonwebtoken');
 
-// Dummy middleware to get user from token
-const authMiddleware = (req, res, next) => {
-  const authHeader = req.headers.authorization;
-  if (!authHeader?.startsWith('Bearer ')) return res.sendStatus(401);
-
-  const token = authHeader.split(' ')[1];
+// GET /api/cart/:id
+router.get('/:id', async (req, res) => {
   try {
-    const decoded = jwt.verify(token, 'your-secret'); // change this to your real JWT secret
-    req.user = decoded;
-    next();
-  } catch (err) {
-    return res.sendStatus(403);
-  }
-};
-
-// GET /api/cart
-router.get('/', authMiddleware, async (req, res) => {
-  try {
-    let cart = await Cart.findOne({ user_id: req.user.id });
-    if (!cart) cart = await Cart.create({ user_id: req.user.id, items: [] });
+    const cart = await Cart.findById(req.params.id);
+    if (!cart) return res.status(404).json({ message: 'Cart not found' });
     res.json(cart);
   } catch (err) {
     res.status(500).json({ message: 'Failed to fetch cart' });
@@ -31,20 +14,36 @@ router.get('/', authMiddleware, async (req, res) => {
 });
 
 // POST /api/cart
-router.post('/', authMiddleware, async (req, res) => {
+router.post('/', async (req, res) => {
   try {
     const { items } = req.body;
-    if (!Array.isArray(items)) return res.status(400).json({ message: 'Invalid items' });
-
-    const cart = await Cart.findOneAndUpdate(
-      { user_id: req.user.id },
-      { items, updatedAt: new Date() },
-      { new: true, upsert: true }
-    );
-
-    res.json(cart);
+    if (!Array.isArray(items)) {
+      return res.status(400).json({ message: 'Invalid items' });
+    }
+    const newCart = new Cart({ items });
+    const savedCart = await newCart.save();
+    res.status(201).json(savedCart);
   } catch (err) {
-    res.status(500).json({ message: 'Failed to sync cart' });
+    res.status(500).json({ message: 'Failed to create cart' });
+  }
+});
+
+// PUT /api/cart/:id
+router.put('/:id', async (req, res) => {
+  try {
+    const { items } = req.body;
+    if (!Array.isArray(items)) {
+      return res.status(400).json({ message: 'Invalid items' });
+    }
+    const updatedCart = await Cart.findByIdAndUpdate(
+      req.params.id,
+      { items, updatedAt: new Date() },
+      { new: true }
+    );
+    if (!updatedCart) return res.status(404).json({ message: 'Cart not found' });
+    res.json(updatedCart);
+  } catch (err) {
+    res.status(500).json({ message: 'Failed to update cart' });
   }
 });
 
