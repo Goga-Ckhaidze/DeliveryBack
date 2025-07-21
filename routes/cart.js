@@ -1,15 +1,12 @@
-// routes/cart.js
 const express = require('express');
 const router = express.Router();
-const Cart = require('../models/cart'); // Your Cart model
+const Cart = require('../models/Cart');
 
 // Create new cart
 router.post('/', async (req, res) => {
   try {
-    const newCart = new Cart({
-      items: req.body.items || [],
-    });
-
+    const items = req.body.items || [];
+    const newCart = new Cart({ items });
     const savedCart = await newCart.save();
     res.status(201).json(savedCart);
   } catch (error) {
