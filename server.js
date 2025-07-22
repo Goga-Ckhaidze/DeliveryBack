@@ -5,7 +5,7 @@ require('./db')(); // your db connection file
 const connection = require('./db');
 const userRouters = require('./routes/users');
 const authRoutes = require('./routes/auth');
-const orderRoutes = require('./routes/orders');  // note: check your folder name spelling (orders vs Order)
+const orderRoutes = require('./routes/Order');  // note: check your folder name spelling (orders vs Order)
 const cartRoutes = require('./routes/cart');
 
 connection();
