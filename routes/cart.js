@@ -39,7 +39,7 @@ router.put('/:id', async (req, res) => {
     res.json(updatedCart);
   } catch (error) {
     console.error("Error updating cart:", error);
-    res.status(500).json({ message: "Server error" });
+    res.status(500).json({ message: "Server error" , error:error });
   }
 });
 
