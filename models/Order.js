@@ -1,20 +1,20 @@
 const mongoose = require('mongoose');
 
 const orderSchema = new mongoose.Schema({
-  name: String,
-  phone: String,
+  name: { type: String, required: true },
+  phone: { type: String, required: true },
   location: {
-    lat: Number,
-    lng: Number
+    lat: { type: Number, required: true },
+    lng: { type: Number, required: true }
   },
-items: [
-  {
-    productId: { type: mongoose.Schema.Types.ObjectId, ref: 'Product', required: true },
-    quantity: { type: Number, required: true, min: 1 },
-    price: { type: Number, required: true }  // price per unit at order time
-  }
-],
-
+  items: [
+    {
+      title: { type: String, required: true },
+      price: { type: Number, required: true },
+      quantity: { type: Number, required: true, min: 1 },
+      image: { type: String }
+    }
+  ],
   status: {
     type: String,
     enum: ['pending', 'taken', 'delivered'],
@@ -24,23 +24,18 @@ items: [
     type: String, // delivery guy's ID or email
     default: null
   },
-  // Remove or keep deliveryTime if you want, but now store deliveryEndTime
   deliveryTime: {
     type: String,
     default: null
   },
-
   deliveryEndTime: {
     type: Date,
     default: null
   },
-
-totalPrice: {
-  type: Number,
-  required: true,
-},
-
-  
+  totalPrice: {
+    type: Number,
+    required: true,
+  },
   user_id: {
     type: String,
   },

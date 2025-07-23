@@ -1,4 +1,3 @@
-// routes/orders.js
 const express = require('express');
 const router = express.Router();
 const Order = require('../models/Order');
@@ -22,6 +21,8 @@ router.post('/', async (req, res) => {
 
   const { name, phone, location, items } = req.body;
 
+  console.log(token);
+  console.log(req.body)
   try {
     const decoded = jwt.verify(token, process.env.JWTPRIVATEKEY);
     if (!decoded) return res.status(401).json({ message: "User isn't authenticated" });
@@ -30,7 +31,7 @@ router.post('/', async (req, res) => {
       return res.status(400).json({ message: 'Missing required fields or items' });
     }
 
-    // Calculate total price from client data (you may want to add server-side validation later)
+    // Calculate total price from client data (optional: you may want to validate server-side)
     const totalPrice = items.reduce(
       (sum, item) => sum + item.price * item.quantity,
       0
@@ -48,13 +49,16 @@ router.post('/', async (req, res) => {
     await order.save();
 
     res.status(201).json({ message: 'Order saved successfully', order });
-
+console.log(decoded);
+console.log(order)
   } catch (err) {
+    
     console.error(err);
     if (err.name === 'JsonWebTokenError') {
       return res.status(401).json({ message: "User isn't authenticated" });
     }
     res.status(500).json({ message: 'Server error while saving order' });
+    
   }
 });
 
