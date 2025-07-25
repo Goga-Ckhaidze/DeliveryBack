@@ -76,15 +76,18 @@ router.get('/', async (req, res) => {
 // POST my orders (user only)
 router.post('/my-orders', async (req, res) => {
   const token = getToken(req);
-  if (!token) return res.status(401).json({ message: "User isn't authenticated" });
+  if (!token) return res.status(401).json({ message: 'Token missing' });
 
   try {
     const decoded = jwt.verify(token, process.env.JWTPRIVATEKEY);
-    const data = await Order.find({ user_id: decoded._id });
-    res.status(200).json(data);
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: 'Error fetching user orders' });
+    const userId = decoded._id;
+
+    const userOrders = await Order.find({ user_id: userId });
+
+    res.json(userOrders);
+  } catch (error) {
+    console.error('Error fetching user orders:', error);
+    res.status(401).json({ message: 'Invalid or expired token' });
   }
 });
 
