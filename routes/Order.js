@@ -27,14 +27,24 @@ router.post('/', async (req, res) => {
     const decoded = jwt.verify(token, process.env.JWTPRIVATEKEY);
     if (!decoded) return res.status(401).json({ message: "User isn't authenticated" });
 
-    // Validate and rebuild items using static product data
+    // 🔒 Check for existing active order
+    const activeOrder = await Order.findOne({
+      user_id: decoded._id,
+      status: { $in: ['pending', 'taken'] }, // adjust if needed
+    });
+
+    if (activeOrder) {
+      return res.status(400).json({ message: 'You already have an active order. Please wait until it is delivered or deleted.' });
+    }
+
+    // ✅ Validate and rebuild items using trusted product list
     const validatedItems = items.map(clientItem => {
       const product = products.find(p => p.title === clientItem.title);
       if (!product) throw new Error(`Invalid product: ${clientItem.title}`);
 
       return {
         title: product.title,
-        price: product.price, // trust only backend product price
+        price: product.price,
         image: product.image,
         quantity: clientItem.quantity > 0 ? clientItem.quantity : 1,
       };
